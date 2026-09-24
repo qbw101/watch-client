@@ -1,0 +1,51 @@
+{
+  "module": {
+    "name": "entry",
+    "type": "entry",
+    "description": "$string:module_desc",
+    "mainElement": "EntryAbility",
+    // 关键：成人智能表（WATCH 5 / WATCH Ultimate 2 / 超新星 X 系列）用 wearable。
+    // 官方建议穿戴端独立 HAP 精准适配，不要和手机端混在一个包里。
+    "deviceTypes": [
+      "wearable"
+    ],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "pages": "$profile:main_pages",
+    "abilities": [
+      {
+        "name": "EntryAbility",
+        "srcEntry": "./ets/entryability/EntryAbility.ets",
+        "description": "$string:EntryAbility_desc",
+        "icon": "$media:layered_image",
+        "label": "$string:EntryAbility_label",
+        "startWindowIcon": "$media:startIcon",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true,
+        "skills": [
+          {
+            "entities": [
+              "entity.system.home"
+            ],
+            "actions": [
+              "action.system.home"
+            ]
+          }
+        ]
+      }
+    ],
+    "requestPermissions": [
+      {
+        // 访问电脑上的桥接服务（http://<电脑IP>:8787）必需。
+        // 连接失败的分支在 BridgeClient 里按网络错误码给出提示，不需要
+        // ohos.permission.GET_NETWORK_INFO 去主动查网络状态。
+        "name": "ohos.permission.INTERNET"
+      },
+      {
+        // 触感反馈（点按/转表冠时的轻微震动）。normal 级别，安装即授予，
+        // 不需要弹框。关闭路径在设置页的「震动反馈」开关里，见 common/Haptics.ets。
+        "name": "ohos.permission.VIBRATE"
+      }
+    ]
+  }
+}

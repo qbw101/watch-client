@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抖音手表 · HarmonyOS 穿戴 UI 重设计演示</title>
+<style>
+  /* ============ 页面（浅色，跟随 IDE 主题） ============ */
+  :root{
+    --page-bg:#f5f6f8; --panel-bg:#ffffff; --panel-line:#e5e7eb;
+    --ink:#1d2129; --ink-2:#4e5969; --ink-3:#86909c;
+    --accent:#0A59F7;
+    /* 表盘内（鸿蒙穿戴深色规范） */
+    --w-bg:#000000; --w-card:#1C1C1E; --w-card2:#2C2C2E; --w-line:#38383A;
+    --w-blue:#0A84FF; --w-green:#32D74B; --w-red:#FF453A; --w-orange:#FF9F0A;
+    --w-t1:#FFFFFF; --w-t2:rgba(255,255,255,.62); --w-t3:rgba(255,255,255,.38);
+    --w-brand:#FE2C55;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:"HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--page-bg); color:var(--ink); padding:28px 20px 60px;
+  }
+  .wrap{max-width:1280px; margin:0 auto;}
+  header.page h1{font-size:24px; font-weight:700;}
+  header.page p{margin-top:6px; color:var(--ink-2); font-size:14px;}
+  header.page .tags{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;}
+  .tag{font-size:12px; padding:4px 10px; border-radius:999px; background:#eef1f6; color:var(--ink-2); border:1px solid var(--panel-line);}
+  .tag.hot{background:#e8f0ff; color:var(--accent); border-color:#c8dcff;}
+
+  .layout{display:grid; grid-template-columns:600px 1fr; gap:24px; margin-top:24px; align-items:start;}
+  @media (max-width:1120px){ .layout{grid-template-columns:1fr;} }
+
+  /* ============ 手表舞台 ============ */
+  .stage{background:var(--panel-bg); border:1px solid var(--panel-line); border-radius:20px;
+    padding:28px 20px; display:flex; flex-direction:column; align-items:center;}
+  .bezel{width:526px; height:526px; border-radius:50%; position:relative;
+    background:radial-gradient(circle at 32% 28%, #3a3a3e, #17171a 62%);
+    box-shadow:0 24px 60px rgba(0,0,0,.28), inset 0 2px 3px rgba(255,255,255,.14);
+    display:flex; align-items:center; justify-content:center;}
+  .crown{position:absolute; right:-7px; top:158px; width:12px; height:52px; border-radius:6px;
+    background:linear-gradient(90deg,#4a4a4f,#232327);}
+  .sidekey{position:absolute; right:-5px; top:236px; width:9px; height:34px; border-radius:5px;
+    background:linear-gradient(90deg,#3d3d42,#1d1d21);}
+  #watch{width:466px; height:466px; border-radius:50%; overflow:hidden; position:relative;
+    background:var(--w-bg); box-shadow:inset 0 0 0 2px #000;}
+  .screen{position:absolute; inset:0; display:none; color:var(--w-t1);}
+  .screen.active{display:block;}
+  .col{position:absolute; left:50%; transform:translateX(-50%); width:331px;}
+
+  .stage .hint{margin-top:16px; font-size:13px; color:var(--ink-3);}
+  .stage .hint b{color:var(--ink-2); font-weight:600;}
+
+  /* ============ 通用表盘元件 ============ */
+  .capsule{display:flex; align-items:center; justify-content:center; border-radius:999px;
+    background:var(--w-blue); color:#fff; font-weight:600; cursor:pointer; user-select:none;}
+  .capsule.ghost{background:transparent; border:2px solid var(--w-line); color:var(--w-t1);}
+  .iconbtn{border-radius:50%; background:var(--w-card); display:flex; align-items:center;
+    justify-content:center; cursor:pointer; user-select:none; border:1px solid var(--w-line);}
+  .chev{width:16px; height:16px; border-left:3.5px solid var(--w-t1); border-bottom:3.5px solid var(--w-t1);}
+  .chev.left{transform:rotate(45deg);}
+  .avatar{border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:700; color:#07090C; flex:none;}
+  .spinner{width:56px; height:56px; border-radius:50%; border:5px solid var(--w-card2);
+    border-top-color:var(--w-blue); animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ============ 各屏 ============ */
+  /* 1 启动中 */
+  .s-boot .col{top:170px; display:flex; flex-direction:column; align-items:center; gap:22px;}
+  .s-boot .t1{font-size:26px;}
+  .s-boot .t2{font-size:20px; color:var(--w-t2);}
+  /* 2 连接失败 */
+  .s-fail .col{top:44px; display:flex; flex-direction:column; align-items:center;}
+  .s-fail .badge{width:72px; height:72px; border-radius:50%; background:rgba(255,69,58,.16);
+    border:2px solid var(--w-red); color:var(--w-red); font-size:36px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;}
+  .s-fail .t1{font-size:30px; font-weight:700; margin-top:10px;}
+  .s-fail .reason{font-size:18px; line-height:1.5; color:var(--w-t2); text-align:center;
+    margin-top:6px; min-height:54px;}
+  /* 3 会话列表 */
+  .s-list .hdr{position:absolute; top:52px; left:0; right:0; text-align:center;}
+  .s-list .hdr .t{font-size:30px; font-weight:700;}
+  .s-list .hdr .sub{font-size:18px; color:var(--w-green); margin-top:2px;}
+  .s-list .col{top:128px;}
+  .conv{display:flex; align-items:center; gap:14px; height:104px; padding:0 16px;
+    background:var(--w-card); border-radius:32px; margin-bottom:10px; cursor:pointer; user-select:none;}
+  .conv .avatar{width:64px; height:64px; font-size:28px;}
+  .conv .body{flex:1; min-width:0;}
+  .conv .name{font-size:26px; font-weight:600;}
+  .conv .prev{font-size:20px; color:var(--w-t2); margin-top:3px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;}
+  .conv .time{font-size:18px; color:var(--w-t3); align-self:flex-start; margin-top:24px;}
+  /* 4 聊天 */
+  .s-chat .hdr{position:absolute; top:44px; left:0; right:0; height:72px;}
+  .s-chat .back{position:absolute; left:56px; top:4px; width:64px; height:64px;}
+  .s-chat .peer{position:absolute; left:0; right:0; top:22px; text-align:center; font-size:26px; font-weight:600; pointer-events:none;}
+  .s-chat .msgs{position:absolute; top:116px; left:50%; transform:translateX(-50%); width:331px;
+    display:flex; flex-direction:column; gap:8px;}
+  .bub{max-width:272px; padding:12px 16px; font-size:24px; line-height:1.35; border-radius:28px;}
+  .bub.l{align-self:flex-start; background:var(--w-card2); border-bottom-left-radius:10px;}
+  .bub.r{align-self:flex-end; background:var(--w-blue); border-bottom-right-radius:10px;}
+  .bub.stk{width:96px; height:96px; padding:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:4px; background:var(--w-card2); border-radius:24px;}
+  .bub.stk .emo{font-size:40px;}
+  .bub.stk .cap{font-size:16px; color:var(--w-t2);}
+  .s-chat .reply{position:absolute; bottom:34px; left:50%; transform:translateX(-50%);
+    width:300px; height:88px; font-size:28px;}
+  /* 5 回复方式 */
+  .s-comp .hdr{position:absolute; top:44px; left:0; right:0; height:64px;}
+  .s-comp .back{position:absolute; left:56px; top:0; width:64px; height:64px;}
+  .s-comp .who{position:absolute; left:0; right:0; top:16px; text-align:center; font-size:24px; color:var(--w-t2); pointer-events:none;}
+  .s-comp .col{top:120px; display:flex; flex-direction:column; gap:12px;}
+  .opt{display:flex; align-items:center; gap:16px; height:104px; padding:0 20px;
+    background:var(--w-card); border-radius:32px; cursor:pointer; user-select:none;}
+  .opt .ic{width:64px; height:64px; border-radius:22px; display:flex; align-items:center;
+    justify-content:center; font-size:30px; font-weight:700; flex:none;}
+  .opt .lb{font-size:28px; font-weight:600;}
+  .opt .sub{font-size:20px; color:var(--w-t2); margin-top:2px;}
+  .s-comp .phrases{height:88px; font-size:26px; width:300px; margin:0 auto;}
+  /* 6 表情面板 */
+  .s-stk .hdr{position:absolute; top:44px; left:0; right:0; height:64px;}
+  .s-stk .back{position:absolute; left:56px; top:0; width:64px; height:64px;}
+  .s-stk .ttl{position:absolute; left:0; right:0; top:16px; text-align:center; font-size:24px; font-weight:600; pointer-events:none;}
+  .s-stk .sync{position:absolute; right:56px; top:0; width:64px; height:64px; font-size:24px; font-weight:600;}
+  .s-stk .col{top:126px;}
+  .grid{display:grid; grid-template-columns:repeat(3,100px); gap:10px; justify-content:center;}
+  .cell{width:100px; height:100px; background:var(--w-card); border-radius:26px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    cursor:pointer; user-select:none;}
+  .cell .im{width:60px; height:60px; border-radius:18px; background:var(--w-card2);
+    display:flex; align-items:center; justify-content:center; font-size:32px;}
+  .cell .lb{font-size:16px; color:var(--w-t2);}
+  /* 7 快捷短语 */
+  .s-phr .hdr{position:absolute; top:44px; left:0; right:0; height:64px;}
+  .s-phr .back{position:absolute; left:56px; top:0; width:64px; height:64px;}
+  .s-phr .ttl{position:absolute; left:0; right:0; top:16px; text-align:center; font-size:24px; font-weight:600; pointer-events:none;}
+  .s-phr .kbd-ic{position:absolute; right:56px; top:0; width:64px; height:64px; font-size:24px; font-weight:600;}
+  .s-phr .col{top:118px;}
+  .phr{height:88px; display:flex; align-items:center; padding:0 24px; margin-bottom:10px;
+    background:var(--w-card); border-radius:28px; font-size:26px; cursor:pointer; user-select:none;}
+  /* 8 设置 */
+  .s-set .hdr{position:absolute; top:52px; left:0; right:0; text-align:center;}
+  .s-set .hdr .t{font-size:30px; font-weight:700;}
+  .s-set .col{top:120px;}
+  .row{min-height:96px; display:flex; align-items:center; gap:12px; padding:10px 20px;
+    background:var(--w-card); border-radius:28px; margin-bottom:10px; cursor:pointer; user-select:none;}
+  .row .k{font-size:24px; font-weight:600;}
+  .row .v{font-size:20px; color:var(--w-t2); margin-top:2px;}
+  .row .arrow{margin-left:auto; color:var(--w-t3); font-size:26px;}
+  .s-set .save{width:331px; height:96px; font-size:26px; margin-top:6px;}
+  /* 设置页在实际应用里是可滚动的（内容比圆屏安全高度高），
+     这里用一层底部渐隐 + 提示如实表达「下面还有」 */
+  .s-set .fade{position:absolute; left:0; right:0; bottom:0; height:150px; pointer-events:none;
+    background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000 46%);}
+  .s-set .more{position:absolute; left:0; right:0; bottom:56px; text-align:center;
+    font-size:18px; color:var(--w-t3); pointer-events:none;}
+  /* 自绘开关：不用系统控件，点击只由整行接（行高 96px，比滑块好按得多） */
+  .sw{width:70px; height:40px; border-radius:20px; background:#39414F; margin-left:auto;
+    padding:4px; display:flex; align-items:center; transition:background .15s;}
+  .sw.on{background:var(--w-blue); justify-content:flex-end;}
+  .sw i{width:32px; height:32px; border-radius:50%; background:#fff; display:block;}
+
+  /* ============ 热区检查覆盖层 ============ */
+  #overlay{position:absolute; inset:0; pointer-events:none; display:none; z-index:30;}
+  #overlay.on{display:block;}
+  .hot{position:absolute; border:2.5px dashed; border-radius:14px;}
+  .hot .sz{position:absolute; top:-22px; left:50%; transform:translateX(-50%);
+    font-size:13px; font-weight:700; padding:1px 7px; border-radius:6px; white-space:nowrap;
+    background:#fff; color:#111; box-shadow:0 1px 4px rgba(0,0,0,.4);}
+
+  /* ============ 右侧面板 ============ */
+  .panel{display:flex; flex-direction:column; gap:16px;}
+  .card{background:var(--panel-bg); border:1px solid var(--panel-line); border-radius:16px; padding:18px 20px;}
+  .card h2{font-size:15px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;}
+  .card h2 .n{width:20px; height:20px; border-radius:6px; background:var(--accent); color:#fff;
+    font-size:12px; display:inline-flex; align-items:center; justify-content:center;}
+  .navbtns{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .navbtns button{border:1px solid var(--panel-line); background:#f8f9fb; border-radius:10px;
+    padding:10px 12px; font-size:13.5px; text-align:left; cursor:pointer; color:var(--ink); font-family:inherit;}
+  .navbtns button.cur{border-color:var(--accent); background:#e8f0ff; color:var(--accent); font-weight:600;}
+  .navbtns button small{display:block; color:var(--ink-3); font-size:11.5px; margin-top:2px;}
+  .switchline{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .switchline .desc{font-size:13px; color:var(--ink-2); line-height:1.5;}
+  .switch{position:relative; width:46px; height:26px; flex:none; cursor:pointer;}
+  .switch input{display:none;}
+  .switch .tr{position:absolute; inset:0; border-radius:999px; background:#d4d8de; transition:.2s;}
+  .switch .tr::after{content:""; position:absolute; top:3px; left:3px; width:20px; height:20px;
+    border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.3);}
+  .switch input:checked + .tr{background:var(--accent);}
+  .switch input:checked + .tr::after{left:23px;}
+  .legend{display:flex; gap:14px; margin-top:10px; font-size:12px; color:var(--ink-2); flex-wrap:wrap;}
+  .legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+  ul.rules{list-style:none; display:flex; flex-direction:column; gap:10px; font-size:13.5px; color:var(--ink-2); line-height:1.55;}
+  ul.rules li{padding-left:22px; position:relative;}
+  ul.rules li::before{content:""; position:absolute; left:2px; top:7px; width:8px; height:8px; border-radius:50%; background:var(--accent);}
+  ul.rules b{color:var(--ink);}
+  .swatches{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .sw{border:1px solid var(--panel-line); border-radius:10px; overflow:hidden;}
+  .sw .c{height:34px;}
+  .sw .n{font-size:11px; padding:4px 6px 2px; color:var(--ink-2);}
+  .sw .hx{font-size:10.5px; padding:0 6px 5px; color:var(--ink-3); font-family:Consolas,monospace;}
+  .typescale{display:flex; flex-direction:column; gap:7px;}
+  .typescale .row2{display:flex; align-items:baseline; gap:12px;}
+  .typescale .px{width:76px; font-size:12px; color:var(--ink-3); font-family:Consolas,monospace; flex:none;}
+  .typescale .use{font-size:12px; color:var(--ink-3); margin-left:auto; flex:none;}
+  table.cmp{width:100%; border-collapse:collapse; font-size:13px;}
+  table.cmp th, table.cmp td{padding:8px 8px; text-align:left; border-bottom:1px solid var(--panel-line);}
+  table.cmp th{color:var(--ink-3); font-weight:600; font-size:12px;}
+  table.cmp td.old{color:var(--ink-3); font-family:Consolas,monospace; font-size:12px;}
+  table.cmp td.new{color:var(--accent); font-weight:600; font-family:Consolas,monospace; font-size:12px;}
+  table.cmp td.up{color:#0aa05a; font-size:12px; white-space:nowrap;}
+  .note{font-size:12px; color:var(--ink-3); line-height:1.6; margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>抖音手表客户端 · UI 重设计演示</h1>
+    <p>遵循 HarmonyOS 穿戴设备设计规范 · 华为 WATCH 5（466×466 圆屏）· 所有可交互元素加大防误触</p>
+    <div class="tags">
+      <span class="tag hot">主操作 ≥ 96px</span>
+      <span class="tag hot">常规按键/列表行 ≥ 88px</span>
+      <span class="tag">正文 ≥ 24px</span>
+      <span class="tag">OLED 深色底</span>
+      <span class="tag">圆屏安全区 331px</span>
+      <span class="tag">表冠滚动</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ================= 手表 ================= -->
+    <div class="stage">
+      <div class="bezel">
+        <div class="crown"></div>
+        <div class="sidekey"></div>
+        <div id="watch">
+          <!-- 1 启动中 -->
+          <section class="screen s-boot" data-name="boot">
+            <div class="col">
+              <div class="t1">正在连接电脑…</div>
+              <div class="t2">192.168.1.15:8787</div>
+              <div class="spinner"></div>
+            </div>
+          </section>
+
+          <!-- 2 连接失败 -->
+          <section class="screen s-fail" data-name="fail">
+            <div class="col">
+              <div class="badge">!</div>
+              <div class="t1">连不上电脑</div>
+              <div class="reason">抖音浏览器窗口已被关闭，请在电脑上重启桥接服务</div>
+              <div class="capsule" data-tap data-go="boot" style="width:300px;height:96px;font-size:28px;margin-top:14px;">重试</div>
+              <div class="capsule ghost" data-tap data-go="settings" style="width:300px;height:88px;font-size:24px;margin-top:12px;">修改电脑地址</div>
+            </div>
+          </section>
+
+          <!-- 3 会话列表 -->
+          <section class="screen s-list" data-name="list">
+            <div class="hdr"><div class="t">消息</div><div class="sub">● 已连接电脑</div></div>
+            <div class="col">
+              <div class="conv" data-tap data-go="chat">
+                <div class="avatar" style="background:#FE2C55;">高</div>
+                <div class="body"><div class="name">阿华</div><div class="prev">[表情] V我50</div></div>
+                <div class="time">18:24</div>
+              </div>
+              <div class="conv" data-tap data-go="chat">
+                <div class="avatar" style="background:#FF9F0A;">张</div>
+                <div class="body"><div class="name">小陈</div><div class="prev">好嘞，一会儿见</div></div>
+                <div class="time">17:58</div>
+              </div>
+              <div class="conv" data-tap data-go="settings">
+                <div class="avatar" style="background:#2C2C2E;color:#fff;font-size:26px;">设</div>
+                <div class="body"><div class="name">设置</div><div class="prev">电脑地址 · 令牌 · 同步</div></div>
+                <div class="time"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4 聊天 -->
+          <section class="screen s-chat" data-name="chat">
+            <div class="hdr">
+              <div class="iconbtn back" data-tap data-go="list"><div class="chev left"></div></div>
+              <div class="peer">阿华</div>
+            </div>
+            <div class="msgs">
+              <div class="bub l">晚上去吃饭吗</div>
+              <div class="bub r">走，老地方</div>
+              <div class="bub l stk" data-tap data-go="stickers"><span class="emo">😆</span><span class="cap">V我50</span></div>
+            </div>
+            <div class="capsule reply" data-tap data-go="composer">回复</div>
+          </section>
+
+          <!-- 5 回复方式 -->
+          <section class="screen s-comp" data-name="composer">
+            <div class="hdr">
+              <div class="iconbtn back" data-tap data-go="chat"><div class="chev left"></div></div>
+              <div class="who">回复 阿华</div>
+            </div>
+            <div class="col">
+              <div class="opt" data-tap data-go="stickers">
+                <div class="ic" style="background:rgba(254,44,85,.2);color:#FE2C55;">表</div>
+                <div><div class="lb">表情</div><div class="sub">70 个 · 已同步</div></div>
+              </div>
+              <div class="opt" data-tap data-go="phrases">
+                <div class="ic" style="background:rgba(10,132,255,.2);color:#0A84FF;">文</div>
+                <div><div class="lb">文字</div><div class="sub">全屏键盘输入</div></div>
+              </div>
+              <div class="capsule ghost phrases" data-tap data-go="phrases">快捷短语</div>
+            </div>
+          </section>
+
+          <!-- 6 表情面板 -->
+          <section class="screen s-stk" data-name="stickers">
+            <div class="hdr">
+              <div class="iconbtn back" data-tap data-go="composer"><div class="chev left"></div></div>
+              <div class="ttl">选择表情</div>
+              <div class="iconbtn sync" data-tap>刷</div>
+            </div>
+            <div class="col">
+              <div class="grid">
+                <div class="cell" data-tap><div class="im">🔥</div><div class="lb">续火花</div></div>
+                <div class="cell" data-tap><div class="im">😆</div><div class="lb">V我50</div></div>
+                <div class="cell" data-tap><div class="im">🫰</div><div class="lb">比心</div></div>
+                <div class="cell" data-tap><div class="im">😊</div><div class="lb">微笑</div></div>
+                <div class="cell" data-tap><div class="im">😡</div><div class="lb">生气</div></div>
+                <div class="cell" data-tap><div class="im">🛫</div><div class="lb">起飞</div></div>
+                <div class="cell" data-tap><div class="im">😅</div><div class="lb">尴尬</div></div>
+                <div class="cell" data-tap><div class="im">👍</div><div class="lb">点赞</div></div>
+                <div class="cell" data-tap><div class="im">😭</div><div class="lb">大哭</div></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7 快捷短语 -->
+          <section class="screen s-phr" data-name="phrases">
+            <div class="hdr">
+              <div class="iconbtn back" data-tap data-go="composer"><div class="chev left"></div></div>
+              <div class="ttl">快捷短语</div>
+              <div class="iconbtn kbd-ic" data-tap>键</div>
+            </div>
+            <div class="col">
+              <div class="phr" data-tap>好</div>
+              <div class="phr" data-tap>哈哈</div>
+              <div class="phr" data-tap>在忙，稍后回</div>
+            </div>
+          </section>
+
+          <!-- 8 设置 -->
+          <section class="screen s-set" data-name="settings">
+            <div class="hdr"><div class="t">设置</div></div>
+            <div class="col">
+              <div class="row" data-tap>
+                <div><div class="k">电脑地址</div><div class="v">192.168.1.15:8787</div></div>
+                <div class="arrow">›</div>
+              </div>
+              <div class="row" data-tap>
+                <div><div class="k">连接令牌</div><div class="v">9cb3 •••• 574e</div></div>
+                <div class="arrow">›</div>
+              </div>
+              <div class="row" data-tap data-toggle="haptics">
+                <div><div class="k">震动反馈</div><div class="v">点按与转表冠时轻震</div></div>
+                <div class="sw on"><i></i></div>
+              </div>
+              <div class="capsule save" data-tap data-go="list">保存并重新连接</div>
+            </div>
+            <div class="fade"></div>
+            <div class="more">转表冠查看更多</div>
+          </section>
+
+          <div id="overlay"></div>
+        </div>
+      </div>
+      <div class="hint">表盘内可直接点击跳转：<b>会话 → 聊天 → 回复 → 表情/短语</b>，‹ 返回上一级</div>
+    </div>
+
+    <!-- ================= 面板 ================= -->
+    <div class="panel">
+      <div class="card">
+        <h2><span class="n">1</span>屏幕切换（共 8 屏）</h2>
+        <div class="navbtns" id="navbtns"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">2</span>触控热区检查</h2>
+        <div class="switchline">
+          <div class="desc">在所有可点元素上叠加描边与实测尺寸，逐个核对是否达到防误触标准。</div>
+          <label class="switch"><input type="checkbox" id="auditToggle"><span class="tr"></span></label>
+        </div>
+        <div class="legend">
+          <span><i style="background:#34C759;"></i>达标（高 ≥ 88px）</span>
+          <span><i style="background:#0A84FF;"></i>图标钮（≥ 64px，孤立法）</span>
+          <span><i style="background:#FF3B30;"></i>不达标</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">3</span>设计规范要点</h2>
+        <ul class="rules">
+          <li><b>主操作按钮高 ≥ 96px</b>（重试 / 保存 / 回复），常规列表行与按钮 <b>≥ 88px</b>，纯图标圆钮 <b>≥ 64px</b> 且同屏孤立、间距 ≥ 8px。</li>
+          <li><b>圆屏安全区</b>：内容列宽 ≤ 331px（1.42r，r=233px），四角不摆放任何可点元素。</li>
+          <li><b>字号下限</b>：正文 ≥ 24px，辅助 ≥ 20px，最小 18px；标题 26–30px。</li>
+          <li><b>深色底 #000</b>（OLED 省电），卡片 #1C1C1E，主色鸿蒙蓝 #0A84FF，品牌红 #FE2C55 仅作点缀。</li>
+          <li><b>每屏一个主操作</b>，固定在底部拇指热区（全宽胶囊，宽 300–331px）。</li>
+          <li>图标一律用<b>绘制图形或汉字</b>（返/刷/设），不依赖生僻符号字形——真机字体会渲染成空白。</li>
+          <li>滚动以滑动 + 旋转表冠为主，可滚列表首尾给出「旋转表冠查看更多」提示。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">4</span>色板（表盘内）</h2>
+        <div class="swatches">
+          <div class="sw"><div class="c" style="background:#000000;border-bottom:1px solid #333;"></div><div class="n">页面底</div><div class="hx">#000000</div></div>
+          <div class="sw"><div class="c" style="background:#1C1C1E;"></div><div class="n">卡片</div><div class="hx">#1C1C1E</div></div>
+          <div class="sw"><div class="c" style="background:#2C2C2E;"></div><div class="n">对方气泡</div><div class="hx">#2C2C2E</div></div>
+          <div class="sw"><div class="c" style="background:#0A84FF;"></div><div class="n">主色/我方</div><div class="hx">#0A84FF</div></div>
+          <div class="sw"><div class="c" style="background:#FE2C55;"></div><div class="n">品牌点缀</div><div class="hx">#FE2C55</div></div>
+          <div class="sw"><div class="c" style="background:#32D74B;"></div><div class="n">成功/在线</div><div class="hx">#32D74B</div></div>
+          <div class="sw"><div class="c" style="background:#FF453A;"></div><div class="n">错误</div><div class="hx">#FF453A</div></div>
+          <div class="sw"><div class="c" style="background:#FF9F0A;"></div><div class="n">提醒</div><div class="hx">#FF9F0A</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">5</span>字号梯度（466px 设备像素）</h2>
+        <div class="typescale">
+          <div class="row2"><span class="px">30px/15vp</span><span style="font-size:22px;font-weight:700;">页面标题</span><span class="use">消息 / 设置</span></div>
+          <div class="row2"><span class="px">28px/14vp</span><span style="font-size:20px;font-weight:600;">主按钮文字</span><span class="use">回复 / 重试</span></div>
+          <div class="row2"><span class="px">26px/13vp</span><span style="font-size:18px;font-weight:600;">列表主文字</span><span class="use">会话名 / 短语</span></div>
+          <div class="row2"><span class="px">24px/12vp</span><span style="font-size:17px;">气泡正文</span><span class="use">聊天内容</span></div>
+          <div class="row2"><span class="px">20px/10vp</span><span style="font-size:15px;color:#4e5969;">辅助说明</span><span class="use">预览 / 副标题</span></div>
+          <div class="row2"><span class="px">18px/9vp</span><span style="font-size:13px;color:#86909c;">最小字</span><span class="use">时间 / 提示</span></div>
+        </div>
+        <div class="note">ArkUI 实现时设备像素 ÷ 2 即 vp；按项目约定换算成 r 的系数（r=233px）集中放入 Geometry.ets。</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">6</span>与现版对照</h2>
+        <table class="cmp">
+          <tr><th>元素</th><th>现版</th><th>新版</th><th>变化</th></tr>
+          <tr><td>会话列表行高</td><td class="old">86px</td><td class="new">104px</td><td class="up">+21%</td></tr>
+          <tr><td>列表头像</td><td class="old">52px</td><td class="new">64px</td><td class="up">+23%</td></tr>
+          <tr><td>表情面板格子</td><td class="old">70px</td><td class="new">100px</td><td class="up">+43%</td></tr>
+          <tr><td>格内表情图</td><td class="old">47px</td><td class="new">60px</td><td class="up">+28%</td></tr>
+          <tr><td>格子标签字</td><td class="old">14px</td><td class="new">16px</td><td class="up">+14%</td></tr>
+          <tr><td>底部主按钮</td><td class="old">93px 圆钮</td><td class="new">300×88px 胶囊</td><td class="up">全宽防误触</td></tr>
+          <tr><td>气泡正文</td><td class="old">20px</td><td class="new">24px</td><td class="up">+20%</td></tr>
+          <tr><td>次要文字下限</td><td class="old">17px</td><td class="new">18px</td><td class="up">规范下限</td></tr>
+        </table>
+        <div class="note">现版数值取自 FriendRow.ets（行高 0.37r≈86px）、StickerCell.ets（格 0.30r≈70px、图 0.20r≈47px、标签 0.062r≈14px）、MessageBubble.ets（正文 0.085r≈20px）。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var screens = [
+    {id:'boot',     name:'启动 · 连接中',   sub:'无热区 · 状态说明'},
+    {id:'fail',     name:'连接失败',        sub:'原因自述 + 大重试'},
+    {id:'list',     name:'会话列表',        sub:'104px 大行'},
+    {id:'chat',     name:'聊天页',          sub:'24px 气泡 + 全宽回复'},
+    {id:'composer', name:'回复方式',        sub:'两张 104px 大卡'},
+    {id:'stickers', name:'表情面板',        sub:'100px 大格子'},
+    {id:'phrases',  name:'快捷短语',        sub:'88px 整行热区'},
+    {id:'settings', name:'设置',            sub:'96px 行 + 96px 保存'}
+  ];
+  var watch = document.getElementById('watch');
+  var overlay = document.getElementById('overlay');
+  var nav = document.getElementById('navbtns');
+  var toggle = document.getElementById('auditToggle');
+  var history = [];
+  var current = 'list';
+  var hashId = (location.hash || '').replace('#', '');
+  for (var hi = 0; hi < screens.length; hi++) {
+    if (screens[hi].id === hashId) { current = hashId; break; }
+  }
+
+  screens.forEach(function(s){
+    var b = document.createElement('button');
+    b.innerHTML = s.name + '<small>' + s.sub + '</small>';
+    b.dataset.id = s.id;
+    b.addEventListener('click', function(){ go(s.id, true); });
+    nav.appendChild(b);
+  });
+
+  function go(id, reset){
+    if(id === current) return;
+    if(!reset) history.push(current); else history = [];
+    current = id;
+    if(location.hash !== '#' + id){
+      try{ window.history.replaceState(null, '', '#' + id); }catch(e){}
+    }
+    render();
+  }
+  function back(){
+    var prev = history.pop();
+    if(prev){ current = prev; render(); }
+  }
+  function render(){
+    var secs = watch.querySelectorAll('.screen');
+    for(var i=0;i<secs.length;i++){
+      secs[i].classList.toggle('active', secs[i].dataset.name === current);
+    }
+    var btns = nav.querySelectorAll('button');
+    for(var j=0;j<btns.length;j++){
+      btns[j].classList.toggle('cur', btns[j].dataset.id === current);
+    }
+    requestAnimationFrame(audit);
+  }
+
+  watch.addEventListener('click', function(e){
+    /* 自绘开关：点整行就翻转，文案跟着变（和实现里一样，滑块本身不单独接事件） */
+    var sw = e.target.closest('[data-toggle]');
+    if(sw){
+      var swEl = sw.querySelector('.sw');
+      swEl.classList.toggle('on');
+      var on = swEl.classList.contains('on');
+      var v = sw.querySelector('.v');
+      if(v) v.textContent = on ? '点按与转表冠时轻震' : '已关闭';
+      return;
+    }
+    var t = e.target.closest('[data-go]');
+    if(t){
+      var dest = t.dataset.go;
+      /* 返回键：目标是已访问过的上一级时走历史栈 */
+      if(t.classList.contains('back')){ back(); return; }
+      go(dest, false);
+    }
+  });
+
+  function audit(){
+    overlay.innerHTML = '';
+    if(!toggle.checked){ overlay.classList.remove('on'); return; }
+    overlay.classList.add('on');
+    var wrect = watch.getBoundingClientRect();
+    var active = watch.querySelector('.screen.active');
+    if(!active) return;
+    var els = active.querySelectorAll('[data-tap]');
+    els.forEach(function(el){
+      var r = el.getBoundingClientRect();
+      var w = Math.round(r.width), h = Math.round(r.height);
+      var color, ok = h >= 88;
+      if(ok) color = '#34C759';
+      else if(h >= 64 && w <= 100) color = '#0A84FF';   /* 孤立图标钮 */
+      else color = '#FF3B30';
+      var d = document.createElement('div');
+      d.className = 'hot';
+      d.style.left = (r.left - wrect.left) + 'px';
+      d.style.top = (r.top - wrect.top) + 'px';
+      d.style.width = r.width + 'px';
+      d.style.height = r.height + 'px';
+      d.style.borderColor = color;
+      d.innerHTML = '<span class="sz" style="color:' + color + '">' + w + '×' + h + '</span>';
+      overlay.appendChild(d);
+    });
+  }
+  toggle.addEventListener('change', audit);
+  window.addEventListener('resize', audit);
+
+  if (location.search.indexOf('audit') >= 0) toggle.checked = true;
+  render();
+})();
+</script>
+</body>
+</html>

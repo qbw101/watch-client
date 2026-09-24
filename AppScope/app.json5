@@ -1,0 +1,12 @@
+{
+  "app": {
+    // 与 AGC（AppGallery Connect）里创建的 App ID 保持一致；
+    // 用 DevEco 的「自动签名」时会按这个 bundleName 自动创建，不用先去网站上建。
+    "bundleName": "top.qbwnas.douyinwatch",
+    "vendor": "qbw",
+    "versionCode": 1000000,
+    "versionName": "1.0.0",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name"
+  }
+}

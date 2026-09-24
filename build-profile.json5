@@ -1,0 +1,66 @@
+{
+  "app": {
+    // 由 DevEco Studio 的「自动签名」填充，不需要手工做证书。
+    // 做法：先连上手表，再 File > Project Structure > Project > Signing Configs
+    //       勾 Automatically generate signature（HarmonyOS 工程同时勾 Support HarmonyOS）。
+    // 顺序不能颠倒 —— 自动签名会把「已连接设备的 UDID」写进 Profile。
+    //
+    // 生效点是下面 products[0] 的 "signingConfig": "default" —— 必须指向这里某个配置的 name。
+    // 少了那一行，产物仍是 entry-default-unsigned.hap，真机安装会直接报 9568320 / no signature file
+    // （hvigor 日志里对应的是 "No signingConfig found for product default"）。
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\Administrator\\.ohos\\config\\default_watch-client_JQy4_gAo53lSpgkEj9IYFyntRE5evdHn-x0Mh_XG6Tk=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B4C17FF96D67FFCD7584E7A661C9796B6848336C76D8C8F28498920F01DD350D3EAD19AD07D2715",
+          "profile": "C:\\Users\\Administrator\\.ohos\\config\\default_watch-client_JQy4_gAo53lSpgkEj9IYFyntRE5evdHn-x0Mh_XG6Tk=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\Administrator\\.ohos\\config\\default_watch-client_JQy4_gAo53lSpgkEj9IYFyntRE5evdHn-x0Mh_XG6Tk=.p12",
+          "storePassword": "0000001B5A76379C3541D542FAE153E9E7C7A63AE058D8AC2093D70ADECBF6F5E334D1A36EE3B06663B7BD"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        // 与 watch-bridge 的桥接服务对应：targetSdkVersion 建议随 DevEco 提示升级，
+        // compatibleSdkVersion 就是应用市场分发的 minAPIVersion，不要随便调高。
+        "compatibleSdkVersion": "6.0.0(20)",
+        "targetSdkVersion": "6.0.0(20)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

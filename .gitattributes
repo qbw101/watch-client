@@ -1,0 +1,17 @@
+# 行尾一律 LF。
+#
+# 本工程所有源文件本来就是 LF。而本机 core.autocrlf=true 会在 checkout 时
+# 把它们变成 CRLF —— 那会让 tools/*.sh 直接坏掉（bash 报
+# `bad interpreter: /usr/bin/env bash^M`，症状是脚本一行都不执行）。
+# 与其指望每台机器的 git 配置都对，不如在仓库里把这件事钉死。
+* text=auto eol=lf
+
+# 二进制：明确声明，避免任何行尾或编码转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.hap binary
+*.zip binary
+*.p12 binary
+*.cer binary
+*.p7b binary

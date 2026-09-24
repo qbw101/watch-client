@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>应用图标新旧对比 · 抖音手表客户端</title>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0; padding:40px 48px; font-family:"HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
+    background:#F2F3F7; color:#1A1C21;}
+  h1{font-size:26px; margin:0 0 6px;}
+  .sub{color:#6B7280; font-size:14px; margin-bottom:32px;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:980px;}
+  .card{background:#fff; border-radius:18px; padding:28px; box-shadow:0 2px 12px rgba(20,24,40,.06);}
+  .card h2{font-size:17px; margin:0 0 20px;}
+  .tag{display:inline-block; font-size:12px; padding:3px 10px; border-radius:99px; margin-left:8px; vertical-align:2px;}
+  .tag.old{background:#F3F4F6; color:#6B7280;}
+  .tag.new{background:#E8F1FF; color:#0A59F7; font-weight:600;}
+  .row{display:flex; align-items:flex-end; gap:36px; flex-wrap:wrap;}
+  .item{text-align:center;}
+  .item .cap{font-size:12px; color:#9AA0AB; margin-top:10px;}
+  .sq{border-radius:22%; overflow:hidden; box-shadow:0 4px 14px rgba(20,24,40,.14);}
+  .cir{border-radius:50%; overflow:hidden; box-shadow:0 4px 14px rgba(20,24,40,.18);}
+  img{display:block;}
+  .darkcard{background:#0E1118; border-radius:18px; padding:28px; max-width:980px; margin-top:24px;
+    color:#E8EAF0;}
+  .darkcard h2{font-size:17px; margin:0 0 6px; color:#fff;}
+  .darkcard .note{font-size:13px; color:#9AA3B2; margin-bottom:20px;}
+  .darkcard .item .cap{color:#7A8394;}
+  ul.spec{margin:10px 0 0; padding-left:20px; font-size:13px; color:#5B6472; line-height:1.9;}
+  ul.spec b{color:#1A1C21;}
+</style>
+</head>
+<body>
+  <h1>应用图标新旧对比</h1>
+  <div class="sub">抖音手表客户端（top.qbwnas.douyinwatch）· 按 HarmonyOS 分层图标规范重设计 · 已写入工程资源目录</div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>旧版<span class="tag old">v0</span></h2>
+      <div class="row">
+        <div class="item"><img class="sq" src="old/app_icon.png" width="96" height="96"><div class="cap">96px · 圆角矩形</div></div>
+        <div class="item"><img class="cir" src="old/app_icon.png" width="64" height="64"><div class="cap">64px · 手表圆盘</div></div>
+        <div class="item"><img class="cir" src="old/app_icon.png" width="40" height="40"><div class="cap">40px · 小尺寸</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>新版<span class="tag new">v1 · 已采用</span></h2>
+      <div class="row">
+        <div class="item"><img class="sq" src="flat_216.png" width="96" height="96"><div class="cap">96px · 圆角矩形</div></div>
+        <div class="item"><img class="cir" src="flat_512.png" width="64" height="64"><div class="cap">64px · 手表圆盘</div></div>
+        <div class="item"><img class="cir" src="flat_512.png" width="40" height="40"><div class="cap">40px · 小尺寸</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="darkcard">
+    <h2>手表桌面效果（圆形裁切）</h2>
+    <div class="note">华为穿戴桌面图标以圆形显示，深色底在 OLED 上更省电、与表盘更融合</div>
+    <div class="row">
+      <div class="item"><img class="cir" src="flat_512.png" width="120" height="120"><div class="cap">120px</div></div>
+      <div class="item"><img class="cir" src="flat_512.png" width="80" height="80"><div class="cap">80px</div></div>
+      <div class="item"><img class="cir" src="flat_512.png" width="56" height="56"><div class="cap">56px</div></div>
+      <div class="item"><img class="cir" src="flat_512.png" width="36" height="36"><div class="cap">36px</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:980px; margin-top:24px;">
+    <h2>设计说明（HarmonyOS 图标规范）</h2>
+    <ul class="spec">
+      <li><b>分层结构</b>：背景层 + 前景层各 512×512，由系统套用遮罩（手机超椭圆 / 手表圆形），前景主体收在中央安全区内，任何裁切都不伤主体。</li>
+      <li><b>配色</b>：深墨底 <b>#0B0E15</b>（OLED 省电）+ 左上品红 / 右下青的环境微光（呼应抖音品牌双色系）；气泡渐变 <b>#FF6B87 → #B06CFF → #5B8CFF</b>，比旧版粉灰更通透。</li>
+      <li><b>图形延续</b>：保留旧版「气泡小精灵」造型与双眼负形，老用户一眼认出；顶部加了一道柔和高光，小尺寸下轮廓更清晰。</li>
+      <li><b>小尺寸可读性</b>：双眼与气泡边缘对比度高，36px 下仍可辨认（见上方预览）。</li>
+      <li><b>落盘文件</b>：<b>foreground.png / background.png</b>（512，分层图标）· <b>app_icon.png / startIcon.png</b>（216，圆角平面）。旧版备份在 <b>attic/icons-v0/</b>。</li>
+    </ul>
+  </div>
+</body>
+</html>

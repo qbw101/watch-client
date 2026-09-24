@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;}</style></head>
+<body>
+<svg width="216" height="216" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="mask"><rect width="512" height="512" rx="116"/></clipPath>
+    <radialGradient id="glowM" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FE2C55" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#FE2C55" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowC" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#25F4EE" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#25F4EE" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bub" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF6B87"/>
+      <stop offset="0.55" stop-color="#B06CFF"/>
+      <stop offset="1" stop-color="#5B8CFF"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#mask)">
+    <rect width="512" height="512" fill="#0B0E15"/>
+    <circle cx="132" cy="122" r="240" fill="url(#glowM)"/>
+    <circle cx="396" cy="404" r="240" fill="url(#glowC)"/>
+    <path d="M 106 196 A 80 80 0 0 1 186 116 L 326 116 A 80 80 0 0 1 406 196 L 406 296 A 80 80 0 0 1 326 376 L 186 376 A 80 80 0 0 1 106 296 Z" fill="url(#bub)"/>
+    <circle cx="152" cy="398" r="34" fill="url(#bub)"/>
+    <path d="M 106 196 A 80 80 0 0 1 186 116 L 326 116 A 80 80 0 0 1 406 196 L 406 296 A 80 80 0 0 1 326 376 L 186 376 A 80 80 0 0 1 106 296 Z" fill="url(#sheen)"/>
+    <circle cx="206" cy="240" r="30" fill="#10131B"/>
+    <circle cx="306" cy="240" r="30" fill="#10131B"/>
+  </g>
+</svg>
+</body></html>

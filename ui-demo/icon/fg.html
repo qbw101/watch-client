@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;}</style></head>
+<body>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bub" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF6B87"/>
+      <stop offset="0.55" stop-color="#B06CFF"/>
+      <stop offset="1" stop-color="#5B8CFF"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- 气泡主体：圆角矩形 + 左下尾巴 -->
+  <path d="M 106 196
+           A 80 80 0 0 1 186 116
+           L 326 116
+           A 80 80 0 0 1 406 196
+           L 406 296
+           A 80 80 0 0 1 326 376
+           L 186 376
+           A 80 80 0 0 1 106 296
+           Z" fill="url(#bub)"/>
+  <circle cx="152" cy="398" r="34" fill="url(#bub)"/>
+  <!-- 顶部高光 -->
+  <path d="M 106 196
+           A 80 80 0 0 1 186 116
+           L 326 116
+           A 80 80 0 0 1 406 196
+           L 406 296
+           A 80 80 0 0 1 326 376
+           L 186 376
+           A 80 80 0 0 1 106 296
+           Z" fill="url(#sheen)"/>
+  <!-- 双眼（深色负形） -->
+  <circle cx="206" cy="240" r="30" fill="#10131B"/>
+  <circle cx="306" cy="240" r="30" fill="#10131B"/>
+</svg>
+</body></html>

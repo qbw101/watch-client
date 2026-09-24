@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "抖音私信手表端"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "在手表上收发抖音私信"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "抖音助手"
+    }
+  ]
+}
