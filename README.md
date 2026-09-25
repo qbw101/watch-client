@@ -110,6 +110,10 @@ export DEVECO_SDK_HOME="<DevEco 安装目录>/sdk"
   --mode module -p product=default -p module=entry@default assembleHap --no-daemon
 ```
 
+打包前顺手跑一次 `tools/check_project.py` —— hvigor 打包**不看 `.gitignore`**，
+`entry/src` 下有什么就塞什么。调试脚本留下的 `.ets.bak` 备份会一起进包
+（实测让产物虚胖了 400KB），而备份是改动**之前**的原文，可能带着当时还没脱敏的内容。
+
 产物在 `entry/build/default/outputs/default/`。**文件名里有 `unsigned` 就是没签上**，
 装了必报 `9568320`。装机：
 
@@ -322,6 +326,7 @@ echo "192.168.1.23:43235" > tools/.device
 | 自建表情靠序号定位 | 抖音面板里自建表情没有名字，只能按「第几栏第几个」定位；抖音那边增删表情会让序号漂移，需要重新扫描 |
 | 表冠灵敏度是常量 | 每度滚动的像素数写死在 `Index.ets` 的常量里，可调 |
 | 明文 HTTP 已废弃 | 旧版走 HTTP，现已在 `attic/http-v0/` 留档，不再维护 |
+| hvigor 不看 `.gitignore` | `entry/src` 下的一切文件都会被打进 HAP，调试脚本留下的 `.ets.bak` 备份也不例外。打包前跑 `tools/check_project.py` 可拦下 |
 
 ## 免责声明
 

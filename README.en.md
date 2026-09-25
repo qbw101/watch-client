@@ -117,6 +117,11 @@ export DEVECO_SDK_HOME="<DevEco install dir>/sdk"
   --mode module -p product=default -p module=entry@default assembleHap --no-daemon
 ```
 
+Run `tools/check_project.py` before packaging — hvigor **ignores `.gitignore`** and packs
+whatever it finds under `entry/src`. The `.ets.bak` backups left behind by debug scripts
+ride along too (measured: 400KB of bloat), and a backup holds the text from **before** the
+edit, which may still contain content that was later redacted.
+
 The artifact lands in `entry/build/default/outputs/default/`. **If the filename still
 contains `unsigned`, it is not signed** and installation will fail with `9568320`:
 
@@ -347,6 +352,7 @@ echo "192.168.1.23:43235" > tools/.device
 | Custom stickers are addressed by index | They have no names inside Douyin's panel, so they are located as "tab N, item M"; adding or removing stickers shifts those indices and requires a rescan |
 | Crown sensitivity is a constant | Pixels per degree is a constant in `Index.ets` and can be tuned |
 | Plaintext HTTP is deprecated | The old HTTP version is archived in `attic/http-v0/` and no longer maintained |
+| hvigor ignores `.gitignore` | Everything under `entry/src` is packed into the HAP, `.ets.bak` backups from debug scripts included. Run `tools/check_project.py` before packaging to catch them |
 
 ## Disclaimer
 

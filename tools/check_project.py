@@ -168,6 +168,25 @@ def check_src_entries() -> None:
             problems.append(f"{ability.get('name')} 的 srcEntry 不存在: {src}")
 
 
+def check_no_stray_files() -> None:
+    """拦下会被打进 HAP 的临时/备份文件。
+
+    hvigor 打包**不看 .gitignore** —— `entry/src` 下有什么就塞什么。
+    调试脚本留下的 `.ets.bak` 备份就是这么混进产物的（曾经让 827KB 的包
+    虚胖到 1.2MB），而备份是改动**之前**的原文，可能带着当时还没脱敏的内容。
+    """
+    suffixes = ("~", ".orig", ".tmp", ".old", ".swp", ".bak")
+    for path in sorted((ENTRY / "src").rglob("*")):
+        if not path.is_file():
+            continue
+        name = path.name
+        if name.endswith(suffixes) or ".bak" in name:
+            problems.append(
+                f"会被打进 HAP 的临时/备份文件: {path.relative_to(PROJECT_ROOT)}"
+                "（删除，或移到 entry/src 之外）"
+            )
+
+
 def check_brace_balance() -> None:
     """粗略检查 .ets 的括号配对：先剥字符串和注释，再数括号。"""
     pairs = {"}": "{", ")": "(", "]": "["}
@@ -244,6 +263,7 @@ def main() -> int:
 
     check_pages()
     check_src_entries()
+    check_no_stray_files()
     check_brace_balance()
 
     print(f"检查了 {len(config_files)} 个配置文件、资源索引 "
